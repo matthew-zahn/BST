@@ -8,7 +8,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.2'
-#       jupytext_version: 1.2.1
+#       jupytext_version: 1.2.4
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -151,13 +151,13 @@ else:
     get_ipython().run_line_magic('matplotlib', 'auto')
 
 # Code to allow a master "Generator" and derived "Generated" versions
-Generator=False # Is this notebook the master or is it generated?
+Generator=True # Is this notebook the master or is it generated?
 
 # Define (and create, if necessary) the figures directory "Figures"
 if Generator:
     my_file_path = os.path.dirname(os.path.abspath("BufferStockTheory.ipynb")) # Find pathname to this file:
     Figures_HARK_dir = os.path.join(my_file_path,"Figures/") # LaTeX document assumes figures will be here
-    Figures_HARK_dir = os.path.join(my_file_path,"/tmp/Figures/") # Uncomment to make figures outside of git path
+    #Figures_HARK_dir = os.path.join(my_file_path,"/tmp/Figures/") # Uncomment to make figures outside of git path
     if not os.path.exists(Figures_HARK_dir):
         os.makedirs(Figures_HARK_dir)
         
@@ -867,3 +867,46 @@ else:
 # [Two tables in the paper](https://econ.jhu.edu/people/ccarroll/papers/BufferStockTheory/#Sufficient-Conditions-For-Nondegenerate-Solution) summarize the various definitions, and then articulate conditions required for the problem to have a nondegenerate solution.
 #
 # The main other contribution of the paper is to show that, under parametric combinations where the solution is nondegenerate, if the Growth Impatience Condition holds there will be a target level of wealth.
+
+# %% [markdown]
+# # Appendix assignment
+#
+# Writing code to replicate Figure 6. Change notebook status to generator so that it saves versions to the folder path that can be added to the Latex file. 
+
+# %%
+# Construct example where "both RIC and FWHC fail" example
+# Parameterize the agent
+RIC_FHWC_fail_pars                = copy(base_params)
+RIC_FHWC_fail_pars['Rfree']       = 0.98
+RIC_FHWC_fail_pars['PermGroFac']  = [1.00]
+RIC_FHWC_fail_pars['DiscFac']     = 0.99
+RIC_FHWC_fail_pars['CRRA']        = 2.00
+RIC_FHWC_fail_pars['BoroCnstArt'] = None
+
+RIC_FHWC_Fail = IndShockConsumerType(**RIC_FHWC_fail_pars)
+RIC_FHWC_Fail.cycles = 0
+
+# Solve the agent's problem
+RIC_FHWC_Fail.solve()
+
+# Create vector of resources. Pass through agent's consumption function
+m3 = np.linspace(0,9.5,500)
+c_m3 = RIC_FHWC_Fail.solution[0].cFunc(m3)
+
+plt.figure(figsize = (12,9))
+plt.ylim([0,1.2])
+
+plt.plot(m3, c_m3, 'o', color='black', markersize=3)
+plt.xlabel('m')
+plt.ylabel('c')
+
+if Generator:
+    plt.savefig(os.path.join(Figures_HARK_dir, 'RICFailsFHWCFails.png'))
+    plt.savefig(os.path.join(Figures_HARK_dir, 'RICFailsFHWCFails.jpg'))
+    plt.savefig(os.path.join(Figures_HARK_dir, 'RICFailsFHWCFails.pdf'))
+    plt.savefig(os.path.join(Figures_HARK_dir, 'RICFailsFHWCFails.svg'))
+if not in_ipynb():
+    plt.show(block=False) 
+    plt.pause(1)
+else:
+    plt.show(block=True) # Change to False if you want to run uninterrupted
